@@ -1,0 +1,36 @@
+{ 
+  "config": {
+    "target": "https://ms-socket-socket-inflight-qr-jenius2-pt.apps.ms.dev.corp.btpn.co.id",
+    "phases": [
+      {
+        "duration": 200,
+        "arrivalRate": 10
+      }
+    ],
+    "payload": {
+      "path": "../data/cif-token.csv",
+      "fields": [
+        "cif",
+        "tokenId"
+      ],
+      "cast": false
+    }
+  },
+  "scenarios": [
+    {
+      "name": "Test connection scenario",
+      "engine": "socketio",
+      "socketio": {
+        "rejectUnauthorized": false,
+        "extraHeaders": {
+          "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqZW5pdXNfdXNlcnN5bmMwMDVAc2l0LmNvbSIsImN0cyI6Ik9BVVRIMl9TVEFURUxFU1NfR1JBTlQiLCJhdXRoX2xldmVsIjowLCJhdWRpdFRyYWNraW5nSWQiOiI1YjEzNTdhYy1jNDc5LTQ1MjctYjAyZi1kYzgyNDg3Y2VjM2UtMTE5MjQ4NCIsImlzcyI6Imh0dHA6Ly9vYW1zaXQuZGV2LmNvcnAuYnRwbi5jby5pZC9vcGVuYW0vb2F1dGgyL3JlYWxtcy9yb290L3JlYWxtcy9qZW5pdXMiLCJ0b2tlbk5hbWUiOiJhY2Nlc3NfdG9rZW4iLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiYXV0aEdyYW50SWQiOiJQcThMUEoxT2xscWlXU0pYN2Z0MTFIanE1dHciLCJub25jZSI6InJhbmRvbSIsImF1ZCI6Implbml1cyIsImdyYW50X3R5cGUiOiJhdXRob3JpemF0aW9uX2NvZGUiLCJzY29wZSI6WyJvcGVuaWQiLCJwcm9maWxlIiwibG9naW46cGFzc3dvcmQiLCJsc2VjIl0sInJlYWxtIjoiL2plbml1cyIsImp0aSI6ImtMR1Q5RHRIOElsQ3l5Y0tBWkgwOE8xZTd5ZyIsImlhdCI6MTY2NTU1OTk3NSwiZXhwIjoxNjY1NjAzMTc1fQ.Mw5m6QpIF5b66n2EfCgOwcxKq90JHRQwDVX_qvEvRJbSwBvLd5EsdXrXTJpjjUWL2G-L27C8Pku84O0STk61Ejr1xZnpeOECyDcNbyr5drt1uzJLTk64OWYO4fxJBMUHnQb_dBloBC7RdY2UdGZ_8d6OepUJ9NSwnk3JPkkMji1TNJj55ngXEyWgKfCyA8cXEof068En06e0-qX_Lrb7UU5iA4yBCRb4ILkjZNhYn_QkegVkUD-CABBNWV4MMGeILVeKfVC4Sfg6S-JdFh2Oj3ZGVt7YQ9yj8IpzxxAeU9ydDUE6tgbDTCa6pXjgMjpZKzQ_yYNVn-qlAeElJI5BPQ",
+          "x-id-token": "{{tokenId}}"
+        },
+        "transports": ["websocket"]
+      },
+      "flow": [
+        { "think": 300 }
+      ]
+    }
+  ]
+}

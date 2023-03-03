@@ -1,0 +1,25 @@
+{
+  "name": "jwt-token-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "token-generator": "node src/token-generator",
+    "client": "node src/pt-clients",
+    "producer": "node src/pt-producers",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bunyan": "^1.8.15",
+    "csv-parse": "^5.3.0",
+    "csv-stringify": "^6.2.0",
+    "fs": "0.0.1-security",
+    "jsonwebtoken": "^8.5.1",
+    "kafkajs": "^2.2.2",
+    "readline": "^1.3.0",
+    "socket.io-client": "^4.5.3"
+  }
+}

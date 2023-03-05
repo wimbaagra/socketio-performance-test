@@ -2,6 +2,19 @@ const { io } = require('socket.io-client');
 const fs = require('fs');
 const readline = require('readline');
 const bunyan = require('bunyan');
+const _ = require('lodash');
+const percentile = require('percentile');
+
+const {
+  URL,
+  PATH,
+  MAX_CLIENTS,
+  CLIENT_CREATION_INTERVAL_IN_MS,
+  EMIT_DELAY_TIME_IN_MS,
+  CLIENT_TIMEOUT_IN_MS,
+  CLIENT_TRANSPORT
+} = require('./config');
+
 const timestamp = new Date().getTime();
 const connectionLog = bunyan.createLogger({
   name: `socket-pt`,
@@ -22,22 +35,16 @@ const transimissionLog = bunyan.createLogger({
   ]
 });
 
-// const URL = 'https://ms-socket-jenius2-sit.ecommchannels.com/';
-const URL = 'https://nginx-socket-jenius2-sit.ecommchannels.com/';
-// const URL = 'https://nginx-socket-socket-inflight-qr-jenius2-sit.apps.ms-bm.dev.corp.btpn.co.id';
-// const URL = 'https://ms-socket-socket-inflight-qr-jenius2-sit.apps.ms-bm.dev.corp.btpn.co.id';
-// const URL = 'https://socket-test.cloud.btpn.com/';
-const path = undefined;
-// const URL = 'wss://apidev.btpn.com';
-// const path = '/socket/socket.io';
-const MAX_CLIENTS = 500;
-const CLIENT_CREATION_INTERVAL_IN_MS = 50;
-
-let clientCount = 0;
-
 const cifTokenFile =  `${__dirname}/../../data/cif-token.csv`;
 
+let clientCount = 0;
+let emittedClientCount = 0;
+let connectionTimeResult = [];
+let transimssionTimeResult = [];
+
 const run = async () => {
+  console.log('Running test scenario... \n')
+
   connectionLog.info(`Connection Log for URL: ${URL}, number of users: ${MAX_CLIENTS}`);
   connectionLog.info('==================================================================================');
 
@@ -71,15 +78,14 @@ const run = async () => {
 };
 
 const createClient = async (accessToken, idToken, cif) => {
-  const transports = ['websocket'];
   let connectionAttempt = 1;
   const connectionTime = new Date().getTime();
 
   const socket = io(URL, {
-    path,
+    path: PATH,
     rejectUnauthorized: false,
-    transports,
-    timeout: 60000,
+    transports: CLIENT_TRANSPORT,
+    timeout: CLIENT_TIMEOUT_IN_MS,
     extraHeaders: {
       authorization: `Bearer ${accessToken}`,
       'x-id-token': idToken
@@ -88,7 +94,11 @@ const createClient = async (accessToken, idToken, cif) => {
 
   socket.on('connect', () => {
     const now = new Date().getTime();
-    connectionLog.info(`Connection time: ${cif} +++++${now - connectionTime}#####. Connection attempt: ${connectionAttempt}`)
+    const time =  now - connectionTime;
+
+    connectionLog.info(`Connection time: ${cif} +++++${time}#####. Connection attempt: ${connectionAttempt}`)
+
+    connectionTimeResult.push(time);
   });
 
   socket.on('connect_error', (reason) => {
@@ -102,7 +112,7 @@ const createClient = async (accessToken, idToken, cif) => {
   });
 
 
-  await sleep(10000);
+  await sleep(EMIT_DELAY_TIME_IN_MS);
 
   socket.emit('echo', {
     cif,
@@ -116,7 +126,20 @@ const createClient = async (accessToken, idToken, cif) => {
     const { clientTimestamp } = msg;
     if (clientTimestamp) {
       const now = new Date().getTime();
-      transimissionLog.info(`Transimission time: ${cif} +++++${(now - clientTimestamp) / 2}#####`)
+      const time = now - clientTimestamp;
+
+      transimissionLog.info(`Transimission time: ${cif} +++++${(time) / 2}#####`);
+
+      transimssionTimeResult.push(time);
+      emittedClientCount++;
+
+      if(emittedClientCount === MAX_CLIENTS) {
+        console.log('Calculating connection time result...');
+        calculateResult(connectionTimeResult);
+
+        console.log('Calculating transmission time result...');
+        calculateResult(transimssionTimeResult);
+      }
     }
   });
 };
@@ -125,6 +148,24 @@ const sleep = (ms) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+};
+
+const calculateResult = (data) => {
+  const max = _.max(data);
+  const min = _.min(data);
+  const mean = _.mean(data);
+  const percentile90 = percentile(90, data);
+  const percentile95 = percentile(95, data);
+  const percentile99 = percentile(99, data);
+
+  console.log('==============================================')
+  console.log(`AVG           : ${mean}`);
+  console.log(`MIN           : ${min}`);
+  console.log(`MAX           : ${max}`);
+  console.log(`90 Percentile : ${percentile90}`);
+  console.log(`95 Percentile : ${percentile95}`);
+  console.log(`99 Percentile : ${percentile99}`);
+  console.log('==============================================\n\n')
 };
 
 run();
